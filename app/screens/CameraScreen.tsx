@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef } from "react";
 import { StyleSheet, TouchableOpacity, Image, Modal, Button } from "react-native";
 import { Camera, CameraType, FlashMode } from "expo-camera";
 import { Text, View } from "react-native";
 import AppIcon from "../components/AppIcon";
 import { auth, database } from "../config/firebase";
 import { signOut } from "firebase/auth";
-
+import { useNavigation } from "@react-navigation/native";
 
 export default function CameraScreen({navigation}) {
 
@@ -47,7 +47,7 @@ export default function CameraScreen({navigation}) {
   }
 
   
-  const camRef = React.useRef<Camera>(null);
+  const camRef = useRef<Camera>(null);
 
   const takePicture = async () => {
     if(camRef) {
@@ -67,34 +67,20 @@ export default function CameraScreen({navigation}) {
     setImagePreview(null);
   }
 
+   
+  const handleSendImage = ( ) => {
+    //add imagePreview as props to SendTo
+    navigation.navigate("SendTo", {imagePreview});
+    console.log("send image")
+  }
 
-  // const handleSendImage = () => {
-  //   const firebaseData = database.ref('images');
-  //   firebaseData.push({
-  //     image: imagePreview,
-  //     user: auth.currentUser?.email,
-  //     date: Date.now()
-  //   })
-  //   .then(() => {
-  //     console.log("image sent");
-  //     setImagePreview(null);
-  //     setIsOpen(false);
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   })
-  // }
-
-
-  
-  
 
   if(imagePreview) {
     return(
       <Modal visible={isOpen} animationType="none">
         <Image source={{uri: imagePreview}} style={{width: "100%", height: "100%"}} />
         <View style={styles.sendIcon}>
-          <AppIcon AntName="" IonName="send-outline" color="#eee" size={24} style={{}} onPress={() => {}} />
+          <AppIcon AntName="" IonName="send-outline" color="#eee" size={24} style={{}} onPress={handleSendImage} />
         </View>
         <View style={styles.deleteIcon}>
           <AppIcon AntName="" IonName="close" color="#eee" size={24} style={{}} onPress={removePreview} />
@@ -114,8 +100,6 @@ export default function CameraScreen({navigation}) {
         <View style={styles.header}>
           <AppIcon AntName="" IonName="person" color="#eee" size={24} style={{}} onPress={() => {}} />
           <AppIcon AntName="" IonName="camera-reverse-outline" color="#eee" size={24} style={{}} onPress={toggleCameraType} />
-
-          {/* <AppIcon AntName="close" IonName="" color="#eee" size={24} style={{}} onPress={() => {}} /> */}
         </View>
         <View style={styles.sideItems}>
           <AppIcon style={styles.sideIcon} AntName="" IonName="settings-outline" color="#eee" size={24}  onPress={() => {}} />
@@ -141,7 +125,7 @@ const styles = StyleSheet.create({
   },
   captureBtn: {
     position: "absolute",
-    bottom: 60,
+    bottom: 100,
     width: 60,
     height: 60,
     borderRadius: 100,

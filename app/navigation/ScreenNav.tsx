@@ -11,7 +11,9 @@ import UsersScreen from '../screens/UsersScreen';
 import SendToScreen from "../screens/SendToScreen";
 import Login from '../screens/Login';
 import Register from '../screens/Register';
-import { ActivityIndicator, View } from "react-native";
+import BottomNav from "./BottomNav";
+import { ActivityIndicator, View, Text } from "react-native";
+import { createStackNavigator } from "@react-navigation/stack";
 
 
 type AuthenticatedUserContextType = {
@@ -33,54 +35,27 @@ function AuthenticatedUserProvider({ children }) {
       );
 }
 
+const Stack = createStackNavigator();
+
 function AuthStack(){
-    const Tab = createBottomTabNavigator();
     return(
-        <Tab.Navigator screenOptions={{headerShown: false}}>
-            <Tab.Screen name="Login" component={Login} />
-            <Tab.Screen name="Register" component={Register} />
-        </Tab.Navigator>
+      <Stack.Navigator>
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={Register} options={{ headerShown: false }} />
+      </Stack.Navigator>
     )
 }
 
-
-    
-
 function AuthAccessStack(){
-    const Tab = createBottomTabNavigator();
-    const Icons = {
-      Map: "md-location-outline",
-      Chat: "ios-chatbox-outline",
-      Camera: "camera-outline", 
-      Users: "ios-people-outline",
-    }
     return (
-      <Tab.Navigator
-        screenOptions={(route) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            const iconName = Icons[route.route.name];
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-          tabBarActiveBackgroundColor: "black",
-          tabBarInactiveBackgroundColor: "black",
-          tabBarActiveTintColor: "white",
-          tabBarInactiveTintColor: "grey",
-          tabBarStyle: styles.nav,
-          headerShown: false,
-          tabBarAllowFontScaling: true,
-          tabBarLabelStyle: {
-            fontSize: 10,
-          },
-          tabBarShowLabel: false,
-        })}
-      >
-        <Tab.Screen name="Map" component={MapScreen} />
-        <Tab.Screen name="Chat" component={ChatScreen} />
-        <Tab.Screen name="Camera" component={CameraScreen} />
-        <Tab.Screen name="Users" component={UsersScreen} />
-        
-      </Tab.Navigator>
-    );
+      <Stack.Navigator>
+        <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Camera" component={CameraScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Users" component={UsersScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SendTo" component={SendToScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    ); 
   }
 
 
@@ -114,9 +89,8 @@ function RootNavigator() {
         </>
       );
     }
-
     
-export default function BottomNav() {
+export default function ScreenNav() {
     return(
         <AuthenticatedUserProvider>
             <RootNavigator />

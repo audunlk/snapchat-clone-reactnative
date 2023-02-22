@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, Button, SafeAreaView, TouchableOpacity, StatusBar, Alert, ScrollView } from "react-native";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, database } from "../config/firebase";
 
 export default function Login({ navigation }) {
@@ -8,15 +8,7 @@ export default function Login({ navigation }) {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
 
-  // log out user if they are already logged in
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        signOut(auth);
-      }
-    });
-    return unsubscribe;
-  }, []);
+ 
 
   const onHandleLogin = async () => {
     try {
@@ -107,3 +99,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
     }
 });
+
