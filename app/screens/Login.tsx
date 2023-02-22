@@ -1,74 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput, Button, SafeAreaView, TouchableOpacity, StatusBar, Alert, ScrollView } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, database } from "../config/firebase";
 
 export default function Login({ navigation }) {
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
 
-    const onHandleLogin = () => {
-        if(email !== '' && password !== '') {
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Signed in 
-                const user = userCredential.user;
-                // ...
-            })
-            .catch((error) => {
-                const errorMessage = error.message;
-                Alert.alert('Error', errorMessage);
+  // log out user if they are already logged in
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        signOut(auth);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
-            })
-        } else {
-            Alert.alert('Error', 'Please fill in all fields');
-        }
-    };
+  const onHandleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log(user);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    return(
-        <ScrollView  contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps={"handled"} >
-
-        <View>
-            <StatusBar barStyle="dark-content" />
-            <SafeAreaView>
-                <View style={styles.container}>
-
-                        <Text style={styles.title}>Login</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter Email"
-                            value={email}
-                            onChangeText={(text) => setEmail(text)}
-                            autoFocus={true}
-                            textContentType="emailAddress"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter Password"
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            value={password}
-                            onChangeText={(text) => setPassword(text)}
-                            secureTextEntry={true}
-                            textContentType="password"
-                        />
-                        <TouchableOpacity style={styles.button} onPress={onHandleLogin}>
-                            <Text style={styles.buttonText}>Login</Text>
-                        </TouchableOpacity>
-                    
-                        <Text style={{color: "grey"}}>Dont have an account?</Text>
-                        <TouchableOpacity  onPress={() => navigation.navigate('Register')}>
-                             <Text>Sign up!</Text>
-                        </TouchableOpacity>
-                        </View>
-
-
-            </SafeAreaView>
-        </View>
-        </ScrollView>
-
-    )
+  return (
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps={"handled"}>
+      <View>
+        <StatusBar barStyle="dark-content" />
+        <SafeAreaView>
+          <View style={styles.container}>
+            <Text style={styles.title}>Login</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Email"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              autoFocus={true}
+              textContentType="emailAddress"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Password"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              secureTextEntry={true}
+              textContentType="password"
+            />
+            
+            <TouchableOpacity style={styles.button} onPress={onHandleLogin}>
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
+            <Text style={{ color: "grey" }}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text>Sign up!</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
+    </ScrollView>
+  );
 }
+
 
 const styles = StyleSheet.create({
     container: {
@@ -108,4 +107,3 @@ const styles = StyleSheet.create({
         fontSize: 16,
     }
 });
-

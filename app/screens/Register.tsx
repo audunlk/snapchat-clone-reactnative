@@ -1,35 +1,52 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Button, SafeAreaView, TouchableOpacity, StatusBar, Alert, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TextInput, SafeAreaView, TouchableOpacity, StatusBar, Alert, ScrollView } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { auth, database } from "../config/firebase";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 
 export default function Register({ navigation }) {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [uniqueUsername, setUniqueUsername] = useState<string>('');
 
-    const onHandleRegister = () => {
-        if(email !== '' && password !== '') {
-        createUserWithEmailAndPassword(auth, email, password)
-            .then(() =>{
-                Alert.alert('Success', 'Account created successfully');
-                navigation.navigate('Login');
-            })
-            .catch((error) => {
-                const errorMessage = error.message;
-                Alert.alert('Error', errorMessage);
+    const onHandleRegister = async () => {
+        if(email !== '' && password !== '' && uniqueUsername !== '') {
+            // Check if username is already taken
+            const usernameDoc = doc(database, 'usernames', uniqueUsername);
+            const docSnapshot = await getDoc(usernameDoc);
+            if (docSnapshot.exists()) {
+                Alert.alert('Error', 'This username is already taken. Please choose a different username.');
+                return;
+            }
 
-            })
+            // Create new user in auth and Firestore
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(async (userCredential) => {
+                    const { uid } = userCredential.user;
+                    const userDoc = doc(database, 'users', uid);
+                    const userData = {
+                        email,
+                        username: uniqueUsername,
+                    };
+                    await setDoc(userDoc, userData);
+                    await setDoc(usernameDoc, { userId: uid });
+                    Alert.alert('Success', 'Account created successfully');
+                    navigation.navigate('Map');
+                })
+                .catch((error) => {
+                    const errorMessage = error.message;
+                    Alert.alert('Error', errorMessage);
+                });
         } else {
             Alert.alert('Error', 'Please fill in all fields');
         }
     };
 
-    return(
+    return (
         <ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps={"handled"}>
-
-        <View>
-            <StatusBar barStyle="dark-content" />
-            <SafeAreaView>
+            <View>
+                <StatusBar barStyle="dark-content" />
+                <SafeAreaView>
                     <View style={styles.container}>
                         <Text style={styles.title}>Sign Up</Text>
                         <TextInput
@@ -50,21 +67,28 @@ export default function Register({ navigation }) {
                             secureTextEntry={true}
                             textContentType="password"
                         />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter Username"
+                            value={uniqueUsername}
+                            onChangeText={(text) => setUniqueUsername(text)}
+                            textContentType="username"
+                        />
                         <TouchableOpacity style={styles.button} onPress={onHandleRegister}>
                             <Text style={styles.buttonText}>Sign up</Text>
                         </TouchableOpacity>
                     
                         <Text style={{color: "grey"}}>Already have an account?</Text>
-                        <TouchableOpacity  onPress={() => navigation.navigate('Login')}>
-                             <Text>Log In!</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                            <Text>Log In!</Text>
                         </TouchableOpacity>
                     </View>
-            </SafeAreaView>
-        </View>
+                </SafeAreaView>
+            </View>
         </ScrollView>
-
-    )
+    );
 }
+
 
 const styles = StyleSheet.create({
     container: {
