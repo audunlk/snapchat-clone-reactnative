@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ChatScreen() {
+export default function ChatScreen({navigation}) {
   return (
     null
   )

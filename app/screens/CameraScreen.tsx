@@ -3,8 +3,11 @@ import { StyleSheet, TouchableOpacity, Image, Modal, Button } from "react-native
 import { Camera, CameraType, FlashMode } from "expo-camera";
 import { Text, View } from "react-native";
 import AppIcon from "../components/AppIcon";
+import { auth, database } from "../config/firebase";
+import { signOut } from "firebase/auth";
 
-export default function CameraScreen() {
+
+export default function CameraScreen({navigation}) {
 
   const [allowedCamera, setAllowedCamera] = useState(false);
   const [type, setType] = useState(CameraType.back);
@@ -32,10 +35,16 @@ export default function CameraScreen() {
     setFlashMode(current => (current === FlashMode.off ? FlashMode.on : FlashMode.off));
   }
 
-
- 
-
- 
+  const toggleLogOut = () => {
+    signOut(auth)
+      .then(() => {
+        navigation.navigate('Login');
+      })
+      .catch((error) => {
+        alert(error.message);
+        console.log(error);
+      });
+  }
 
   
   const camRef = React.useRef<Camera>(null);
@@ -57,6 +66,27 @@ export default function CameraScreen() {
   const removePreview = () => {
     setImagePreview(null);
   }
+
+
+  // const handleSendImage = () => {
+  //   const firebaseData = database.ref('images');
+  //   firebaseData.push({
+  //     image: imagePreview,
+  //     user: auth.currentUser?.email,
+  //     date: Date.now()
+  //   })
+  //   .then(() => {
+  //     console.log("image sent");
+  //     setImagePreview(null);
+  //     setIsOpen(false);
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   })
+  // }
+
+
+  
   
 
   if(imagePreview) {
@@ -91,6 +121,7 @@ export default function CameraScreen() {
           <AppIcon style={styles.sideIcon} AntName="" IonName="settings-outline" color="#eee" size={24}  onPress={() => {}} />
           <AppIcon style={styles.sideIcon} AntName="" IonName="flash-outline" color={flashMode === FlashMode.off ? "white" : "yellow"}size={24} onPress={toggleFlashMode} />
           <AppIcon style={styles.sideIcon} AntName="" IonName="ios-musical-notes-outline" color="#eee" size={24} onPress={() => {}} />
+          <AppIcon style={styles.sideIcon} AntName="" IonName="log-out-outline" color="#eee" size={24} onPress={toggleLogOut} />
         </View>
       </Camera>
     </View>

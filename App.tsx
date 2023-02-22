@@ -9,7 +9,6 @@ export default function App() {
     <NavigationContainer>
       <BottomNav />
       <StatusBar style="auto" />
-        
     </NavigationContainer>
   );
 }
