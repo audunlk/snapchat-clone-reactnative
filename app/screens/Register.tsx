@@ -25,10 +25,11 @@ export default function Register({ navigation }) {
     };
 
     return(
+        <ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps={"handled"}>
+
         <View>
             <StatusBar barStyle="dark-content" />
             <SafeAreaView>
-                <ScrollView>
                     <View style={styles.container}>
                         <Text style={styles.title}>Sign Up</Text>
                         <TextInput
@@ -58,18 +59,21 @@ export default function Register({ navigation }) {
                              <Text>Log In!</Text>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
             </SafeAreaView>
         </View>
+        </ScrollView>
+
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         justifyContent: 'center',
+        alignSelf: 'center',
         alignItems: 'center',
-        padding: 20,
+        width: "80%",
+        height: "100%",
     },
     title: {
         fontSize: 24,
@@ -81,7 +85,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderWidth: 1,
         borderColor: '#ccc',
-        borderRadius: 5,
+        borderRadius: 30,
         padding: 10,
         marginBottom: 20,
     },
@@ -89,14 +93,14 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 40,
         backgroundColor: '#333',
-        borderRadius: 5,
+        borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
+
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
     }
 });
-
