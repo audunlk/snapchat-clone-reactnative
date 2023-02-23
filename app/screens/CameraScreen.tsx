@@ -5,7 +5,8 @@ import { Text, View } from "react-native";
 import AppIcon from "../components/AppIcon";
 import { auth, database } from "../config/firebase";
 import { signOut } from "firebase/auth";
-import { useNavigation } from "@react-navigation/native";
+import SendImage from "./SendImage";
+import { useNavigation, StackActions } from "@react-navigation/native";
 
 export default function CameraScreen({navigation}) {
 
@@ -15,6 +16,7 @@ export default function CameraScreen({navigation}) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  
   
   if(!allowedCamera) {
     try{
@@ -68,23 +70,26 @@ export default function CameraScreen({navigation}) {
   }
 
    
-  const handleSendImage = ( ) => {
-    //add imagePreview as props to SendTo
-    navigation.navigate("SendTo", {imagePreview});
-    console.log("send image")
+  const handleSendImage = (screenName: string) => {
+    try{
+    navigation.dispatch(StackActions.replace(screenName, {image: imagePreview}));
+    console.log("image sent")
+    } catch (error) {
+      console.log("error sending image");
+    }
   }
-
+     
 
   if(imagePreview) {
     return(
       <Modal visible={isOpen} animationType="none">
         <Image source={{uri: imagePreview}} style={{width: "100%", height: "100%"}} />
         <View style={styles.sendIcon}>
-          <AppIcon AntName="" IonName="send-outline" color="#eee" size={24} style={{}} onPress={handleSendImage} />
+          <AppIcon AntName="" IonName="send-outline" color="#eee" size={24} style={{}} onPress={(event: any) => handleSendImage('SendImage')} />
         </View>
         <View style={styles.deleteIcon}>
           <AppIcon AntName="" IonName="close" color="#eee" size={24} style={{}} onPress={removePreview} />
-        </View>
+        </View> 
       </Modal>
     )
   }
@@ -176,11 +181,3 @@ const styles = StyleSheet.create({
     }
 });
 
-// position: "absolute",
-//     top: 60,
-//     justifyContent: "space-between",
-//     padding: 20,
-//     flexDirection: "row",
-//     width: "100%",
-
-  

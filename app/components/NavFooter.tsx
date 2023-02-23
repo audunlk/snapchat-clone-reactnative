@@ -3,9 +3,10 @@ import React, {useState} from 'react'
 import { View, Text,StyleSheet } from 'react-native'
 import { useNavigation } from '@react-navigation/native';
 
+
 export default function NavFooter() {
   const navigation = useNavigation()
-  const [cameraPageFlag, setCameraPageFlag] = useState(false)
+  const [cameraPageFlag, setCameraPageFlag] = useState(true)
 
   const handleOnClickNav = (screenName: string) => {
     navigation.navigate(screenName as never)

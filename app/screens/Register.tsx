@@ -26,12 +26,14 @@ export default function Register({ navigation }) {
                     const userDoc = doc(database, 'users', uid);
                     const userData = {
                         email,
+                        id: uid,
                         username: uniqueUsername,
+                        messages: [],
                     };
                     await setDoc(userDoc, userData);
                     await setDoc(usernameDoc, { userId: uid });
                     Alert.alert('Success', 'Account created successfully');
-                    navigation.navigate('Map');
+                    navigation.navigate('Camera');
                 })
                 .catch((error) => {
                     const errorMessage = error.message;

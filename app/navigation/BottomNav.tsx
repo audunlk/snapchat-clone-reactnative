@@ -8,7 +8,6 @@ import MapScreen from '../screens/MapScreen';
 import ChatScreen from '../screens/ChatScreen';
 import CameraScreen from '../screens/CameraScreen';
 import UsersScreen from '../screens/UsersScreen';
-import SendToScreen from "../screens/SendToScreen";
 import Login from '../screens/Login';
 import Register from '../screens/Register';
 import { ActivityIndicator, View } from "react-native";

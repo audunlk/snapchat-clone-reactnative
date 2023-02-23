@@ -8,12 +8,14 @@ import MapScreen from '../screens/MapScreen';
 import ChatScreen from '../screens/ChatScreen';
 import CameraScreen from '../screens/CameraScreen';
 import UsersScreen from '../screens/UsersScreen';
-import SendToScreen from "../screens/SendToScreen";
 import Login from '../screens/Login';
 import Register from '../screens/Register';
-import BottomNav from "./BottomNav";
 import { ActivityIndicator, View, Text } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
+import SendImage from "../screens/SendImage";
+import NavFooter from "../components/NavFooter";
+import UserChatScreen from "../screens/UserChatScreen";
+
 
 
 type AuthenticatedUserContextType = {
@@ -47,13 +49,15 @@ function AuthStack(){
 }
 
 function AuthAccessStack(){
+
     return (
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName="Camera" >
         <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Camera" component={CameraScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Users" component={UsersScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SendTo" component={SendToScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SendImage" component={SendImage} options={{ headerShown: false }} />
+        <Stack.Screen name="UserChat" component={UserChatScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     ); 
   }
@@ -88,12 +92,13 @@ function RootNavigator() {
             {user ? <AuthAccessStack /> : <AuthStack />}
         </>
       );
-    }
+    }  
     
 export default function ScreenNav() {
     return(
         <AuthenticatedUserProvider>
             <RootNavigator />
+            <NavFooter />
         </AuthenticatedUserProvider>
     )
 

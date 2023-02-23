@@ -63,6 +63,24 @@ export default function UsersScreen() {
     setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== id));
   };
 
+  const handleSendFriendReq = async (id, username) => {
+    //set to pending in the users friend list
+    const userRef = doc(database, "users", user.uid);
+    await updateDoc(userRef, {
+      friends: arrayUnion({ id, username, status: 'pending' })
+    });
+    //set to received in the other users friend list
+    const otherUserRef = doc(database, "users", id);
+    await updateDoc(otherUserRef, {
+      friends: arrayUnion({ id: user.uid, username: user.username, status: 'received' })
+    });
+    setFriendList(prevFriends => [...prevFriends, { id, username }]);
+    setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== id));
+    
+  };
+
+
+
   const handleRemoveFriend = async (id) => {
     const userRef = doc(database, "users", user.uid);
     await updateDoc(userRef, {
@@ -95,7 +113,6 @@ export default function UsersScreen() {
             value={searchForUser}
             autoCorrect={false}
             autoCapitalize="none"
-            autoFocus={true}
           />
           <Ionicons name="search" size={24} color="black" />
         </View>
@@ -104,7 +121,10 @@ export default function UsersScreen() {
             return (
               <View key={i + 11} style={styles.friendBar}>
                 <Text>{friend.username}</Text>
-                <TouchableOpacity onPress={() => handleRemoveFriend(friend.id)}>
+                <TouchableOpacity 
+                onPress={() => handleRemoveFriend(friend.id)}
+                activeOpacity={1}
+                >
                 <Ionicons name="trash-outline" size={24} color="black" />
                 </TouchableOpacity>
               </View>
@@ -113,7 +133,10 @@ export default function UsersScreen() {
           {filteredUsers.map((user) => (
             <View key={user.id} style={styles.friendBar}>
               <Text>{user.username}</Text>
-              <TouchableOpacity onPress={() => handleAddFriend(user.id, user.username)}>
+              <TouchableOpacity 
+              onPress={() => handleAddFriend(user.id, user.username)}
+              activeOpacity={1}
+              >
                 {loading ? <ActivityIndicator size="small" color="#0000ff" /> : null}
                 <Ionicons name="person-add" size={24} color="black"  />
               </TouchableOpacity>
@@ -161,6 +184,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
   },
-  
-
 });
