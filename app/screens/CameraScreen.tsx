@@ -72,8 +72,9 @@ export default function CameraScreen({navigation}) {
    
   const handleSendImage = (screenName: string) => {
     try{
+      console.log(imagePreview + "       image in CameraScreen")
     navigation.dispatch(StackActions.replace(screenName, {image: imagePreview}));
-    console.log("image sent")
+      console.log("image sent")
     } catch (error) {
       console.log("error sending image");
     }

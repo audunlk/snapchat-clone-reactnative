@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { database, auth, storage } from '../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { View, Text, ActivityIndicator, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
-import { arrayRemove, collection, getDocs } from "firebase/firestore";
+import {  collection, getDocs } from "firebase/firestore";
 import { Ionicons } from '@expo/vector-icons';
-import AppIcon from '../components/AppIcon';
 import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 
 export default function SendImage({ route }) {
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(route.params.image);
   const [friendList, setFriendList] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,10 +15,10 @@ export default function SendImage({ route }) {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       try {
         if (user) {
-          setLoading(true);
           setUser(user);
           const usersRef = collection(database, 'users');
           const usersSnapshot = await getDocs(usersRef);
@@ -30,15 +29,17 @@ export default function SendImage({ route }) {
           setFriendList(friends.data().friends || []);
           setUsers(users);
           setImage(route.params.image);
+          console.log(image + "       image")
           setLoading(false);
         } else {
           setUser(null);
+          setLoading(false);
         }
       } catch (error) {
         console.log(error);
       }
-      setLoading(false);
     });
+
     return unsubscribe;
   }, []);
 
@@ -51,24 +52,46 @@ export default function SendImage({ route }) {
   };
 
   const handleSendImageToUser = async () => {
-    setLoading(true);
     try {
-      // Upload the image to Firebase Storage
-      const imageRef = ref(storage, `${user.uid}/${Date.now()}.jpg`);
-      await uploadBytes(imageRef, image);
-      // Get the download URL of the uploaded image
+      setLoading(true);
+      const response = await fetch(image);
+      const blob = await response.blob();
+      const unixTimeStap = Date.now();
+      const imageRef = ref(storage, `${selectedFriend}/${unixTimeStap}.jpeg`);
+      await uploadBytes(imageRef, blob, {
+        contentType: 'image/jpeg',
+      });
       const imageUrl = await getDownloadURL(imageRef);
-      // Add the image URL to the user's images array in Firestore
       const userRef = doc(database, "users", selectedFriend);
       await updateDoc(userRef, {
-        images: arrayUnion(imageUrl)
+        images: arrayUnion({
+          imageUrl: imageUrl,
+          timestamp: unixTimeStap,
+          senderId: user.uid,
+        }),
       });
+      //upload to user's own images aswell
+
+      //PROBLEM IS IMG SIZE IS TOO BIG
+      //NOT WORKING REMOVE CODE IF NOT WORKING
+      const userRef2 = doc(database, "users", user.uid);
+      await updateDoc(userRef2, {
+        images: arrayUnion({
+          imageUrl: imageUrl,
+          timestamp: unixTimeStap,
+          senderId: user.uid,
+        }),
+      });
+            //NOT WORKING REMOVE CODE IF NOT WORKING
       console.log('Image sent to user');
+      setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.log("crashed");
     }
-    setLoading(false);
+    
   };
+
+
 
   return (
     <View style={styles.container}>
@@ -90,6 +113,7 @@ export default function SendImage({ route }) {
       {selectedFriend ?
         <TouchableOpacity
           style={styles.sendIcon}
+          disabled={loading}
           onPress={handleSendImageToUser}
         >
           {loading ? <ActivityIndicator color="white" /> : <Ionicons name="send-outline" size={24} color="white" />}

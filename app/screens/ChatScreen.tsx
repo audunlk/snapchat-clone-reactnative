@@ -1,33 +1,11 @@
 import React, {useState, useEffect} from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
-import NavFooter from '../components/NavFooter'
 import { auth, database, storage } from '../config/firebase';
 import { collection, getDocs, getDoc, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { Ionicons } from '@expo/vector-icons';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { StackActions } from '@react-navigation/native';
 
-
-//Recieve this:
-// const handleSendImageToUser = async () => {
-//   setLoading(true);
-//   try {
-//     // Upload the image to Firebase Storage
-//     const imageRef = ref(storage, `${user.uid}/${Date.now()}.jpg`);
-//     await uploadBytes(imageRef, image);
-//     // Get the download URL of the uploaded image
-//     const imageUrl = await getDownloadURL(imageRef);
-//     // Add the image URL to the user's images array in Firestore
-//     const userRef = doc(database, "users", selectedFriend);
-//     await updateDoc(userRef, {
-//       images: arrayUnion(imageUrl)
-//     });
-//     console.log('Image sent to user');
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   setLoading(false);
-// };
 
 export default function ChatScreen( { navigation } ) {
   const [friendList, setFriendList] = useState([]);
@@ -54,8 +32,8 @@ export default function ChatScreen( { navigation } ) {
           setFriendReqPending(pendingFriends.data().pendingFriends || []);
           setFriendList(friends.data().friends || []);
           setUsers(users);
-          setLoading(false);
 
+          setLoading(false);
         } else {
           setUser(null);
         }

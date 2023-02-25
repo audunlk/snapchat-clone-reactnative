@@ -17,6 +17,7 @@ export default function UsersScreen() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setLoading(true);
       try {
         if (user) {
           setLoading(true);
@@ -76,7 +77,6 @@ export default function UsersScreen() {
     });
     setFriendList(prevFriends => [...prevFriends, { id, username }]);
     setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== id));
-    
   };
 
 
