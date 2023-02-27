@@ -13,6 +13,7 @@ import { auth, database } from "../config/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { arrayUnion } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
+import { query, collection, getDocs, where } from "firebase/firestore";
 
 export default function UserChatScreen({ route }) {
   const scrollViewRef = useRef(null);
@@ -87,6 +88,7 @@ export default function UserChatScreen({ route }) {
                 //image display
                 if (item.opened === false) {
                   const imageUrl = item.imageUrl;
+                  console.log(imageUrl + "   image url")
                   return (
                     <View
                       key={i}
@@ -97,7 +99,7 @@ export default function UserChatScreen({ route }) {
                           name="image"
                           size={24}
                           color="black"
-                          onPress={handleImageVisibility}
+                          onPress={() => handleImageVisibility()}
                         />
                       ) : (
                         <Modal visible={isVisible}>
@@ -109,7 +111,7 @@ export default function UserChatScreen({ route }) {
                             name="close"
                             size={24}
                             color="black"
-                            onPress={handleImageVisibility}
+                            onPress={() => handleImageVisibility()}
                             style={{
                               position: "absolute",
                               top: 60,
@@ -163,8 +165,30 @@ export default function UserChatScreen({ route }) {
 
  
 
-  const handleImageVisibility = () => {
+  const handleImageVisibility = async () => {
     setisVisible(!isVisible);
+    //set the image to opened and start a timeout
+    //after timeout set the image.viewedCompleted to true
+    // console.log(imageUrl + "   image url from handleImageVisibility")
+    // //id is the id of the conversation partner
+    
+    // setTimeout( async () => {
+    //   const imageQuery = query(
+    //      collection(database, "users", user.uid, "images"),
+    //     where("imageUrl", "==", imageUrl)
+    //   );
+    //   const imageQuerySnapshot = await getDocs(imageQuery);
+    //   console.log({imageQuerySnapshot})
+    //   imageQuerySnapshot.forEach( async (doc) => {
+    //     // update the viewedCompleted column to true
+    //   await updateDoc(doc.ref, {
+    //     opened: true,
+    //     });
+    //   });
+
+    //   console.log("the end")
+
+    // }, 1000);
   };
 
   const handleSendMessage = async () => {
@@ -235,7 +259,6 @@ export default function UserChatScreen({ route }) {
           alignItems: "center",
           justifyContent: "center",
         }}
-
         >
           <Text>Send</Text>
         </TouchableOpacity>

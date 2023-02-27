@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { database, auth, storage } from '../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { View, Text, ActivityIndicator, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import {  collection, getDocs } from "firebase/firestore";
 import { Ionicons } from '@expo/vector-icons';
 import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
@@ -10,7 +10,7 @@ export default function SendImage({ route }) {
   const [image, setImage] = useState(route.params.image);
   const [friendList, setFriendList] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
 
@@ -33,7 +33,6 @@ export default function SendImage({ route }) {
           setLoading(false);
         } else {
           setUser(null);
-          setLoading(false);
         }
       } catch (error) {
         console.log(error);
@@ -52,44 +51,51 @@ export default function SendImage({ route }) {
   };
 
   const handleSendImageToUser = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(image);
-      const blob = await response.blob();
-      const unixTimeStap = Date.now();
-      const imageRef = ref(storage, `${selectedFriend}/${unixTimeStap}.jpeg`);
-      await uploadBytes(imageRef, blob, {
-        contentType: 'image/jpeg',
-      });
-      const imageUrl = await getDownloadURL(imageRef);
-      const userRef = doc(database, "users", selectedFriend);
-      await updateDoc(userRef, {
-        images: arrayUnion({
-          imageUrl: imageUrl,
-          timestamp: unixTimeStap,
-          senderId: user.uid,
-          opened: false,
-        }),
-      });
-      //upload to user's own images aswell
-
-      //PROBLEM IS IMG SIZE IS TOO BIG
-      //NOT WORKING REMOVE CODE IF NOT WORKING
-      const userRef2 = doc(database, "users", user.uid);
-      await updateDoc(userRef2, {
-        images: arrayUnion({
-          imageUrl: imageUrl,
-          timestamp: unixTimeStap,
-          senderId: user.uid,
-          opened: false,
-        }),
-      });
-            //NOT WORKING REMOVE CODE IF NOT WORKING
-      console.log('Image sent to user');
-      setLoading(false);
-    } catch (error) {
-      console.log("crashed");
+    if(loading) {
+      return;
     }
+    if(image){
+      try {
+        setLoading(true);
+        const response = await fetch(image);
+        const blob = await response.blob();
+        const unixTimeStap = Date.now();
+        const imageRef = ref(storage, `${selectedFriend}/${unixTimeStap}.jpeg`);
+        await uploadBytes(imageRef, blob, {
+          contentType: 'image/jpeg',
+        });
+        const imageUrl = await getDownloadURL(imageRef);
+        const userRef = doc(database, "users", selectedFriend);
+        await updateDoc(userRef, {
+          images: arrayUnion({
+            imageUrl: imageUrl,
+            timestamp: unixTimeStap,
+            senderId: user.uid,
+            opened: false,
+            viewingCompleted: false,
+  
+          }),
+        });
+        //upload to user's own images aswell
+  
+        const userRef2 = doc(database, "users", user.uid);
+        await updateDoc(userRef2, {
+          images: arrayUnion({
+            imageUrl: imageUrl,
+            timestamp: unixTimeStap,
+            senderId: user.uid,
+            opened: false,
+            viewingCompleted: false,
+          }),
+        });
+              //NOT WORKING REMOVE CODE IF NOT WORKING
+        console.log('Image sent to user');
+        setLoading(false);
+      } catch (error) {
+        console.log("crashed");
+      }
+    }
+    
     
   };
 
