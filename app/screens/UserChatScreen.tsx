@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,29 +7,29 @@ import {
   TextInput,
   ScrollView,
   Image,
+  Modal,
 } from "react-native";
 import { auth, database } from "../config/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { arrayUnion } from "firebase/firestore";
-import { useWindowDimensions } from "react-native";
-import { getStorage, ref, listAll } from "firebase/storage";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function UserChatScreen({ route }) {
+  const scrollViewRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
   const [friend, setFriend] = useState(route.params.friend);
   const [loading, setLoading] = useState(false);
   const [currentUserUsername, setCurrentUserUsername] = useState("");
-  const [images, setImages] = useState([]);
   const [chatContent, setChatContent] = useState([]);
-  
+  const [isVisible, setisVisible] = useState(false);
+  const [newMessageIncoming, setNewMessageIncoming] = useState(false);
 
   useEffect(() => {
-    const storage = getStorage();
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       try {
-        if(!user || !route.params.friend ) return;
+        if (!user || !route.params.friend) return;
         if (user) {
           setLoading(true);
           setUser(user);
@@ -37,80 +37,135 @@ export default function UserChatScreen({ route }) {
           const currentUserUsername = await getDoc(
             doc(database, "users", user.uid)
           );
+          console.log(user.uid + "    user id");
           const { username } = currentUserUsername.data();
           setCurrentUserUsername(username);
-          console.log(currentUserUsername + "    username")
-                 
-          
+          console.log(currentUserUsername + "    username");
           const userRef = doc(database, "users", user.uid);
-          const getDocUser = await getDoc(userRef)
+          const getDocUser = await getDoc(userRef);
+
           
-          const userData =  getDocUser.data();
+
+          const userData = getDocUser.data();
           const userMessages = userData.messages || [];
           const userImages = userData.images || [];
-          const totalSort = [...userMessages, ...userImages].sort((a, b) => a.timestamp - b.timestamp);
-          console.log(totalSort + "    total sort");
-          setChatContent(totalSort && totalSort.map((item, i)=> {
-            if(!totalSort) return;
-            if(item.message) {
-              if(item.sentByUser === currentUserUsername.data().username) {
-              return (<View 
-              key={i}
-              style={{alignSelf: "flex-end"}}
-              >
-              <Text>{username}</Text>
-              <Text>{item.message}</Text>
-              </View>)
-              } else {
-                return (<View 
-                key={i}
-                style={{alignSelf: "flex-start"}}
-                >
-                <Text>{item.sentByUser}</Text>
-                <Text>{item.message}</Text>
-                </View>)
-              }
-            } 
-            
-            if (item.imageUrl){
-              if(item.sentByUser === currentUserUsername.data().username) {
-                return (<View
-                key={i}
-                style={{alignSelf: "flex-end"}}
-                >
-                <Image
-                source={{uri: item.imageUrl}}
-                style={{ width: 200, height: 200 }}
-                onLoad={() => console.log("loaded")}
-              />
-                </View>)
-              } else {
-                return (<View
-                key={i}
-                style={{alignSelf: "flex-start"}}
-                >
-                <Image
-                source={{uri: item.imageUrl}}
-                style={{ width: 200, height: 200 }}
-                onLoad={() => console.log("loaded")}
-              />
-                </View>)
-              }
-            }
-            return;
-          }));
-          console.log(chatContent + "    chat content");
+          const totalSort = [...userMessages, ...userImages].sort(
+            (a, b) => a.timestamp - b.timestamp
+          );
+          setChatContent(
+            totalSort &&
+              totalSort.map((item, i) => {
+                if (!totalSort) return;
+                //message display
+                if (item.message) {
+                  if (item.sentByUser === currentUserUsername.data().username) {
+                    return (
+                      <View
+                        key={i}
+                        style={[styles.messages, { alignItems: "flex-end", marginRight: 10, }]}
+                      >
+                        <Text style={{ color: "#08A8F4", fontWeight: "bold" }}>
+                          {username}
+                        </Text>
+                        <Text>{item.message}</Text>
+                      </View>
+                    );
+                  } else {
+                    return (
+                      <View
+                        key={i}
+                        style={[styles.messages, { alignItems: "flex-start", marginLeft: 10, }]}
+                      >
+                        <Text style={{ color: "#F93759", fontWeight: "bold" }}>
+                          {item.sentByUser}
+                        </Text>
+                        <Text>{item.message}</Text>
+                      </View>
+                    );
+                  }
+                }
+                //image display
+                if (item.opened === false) {
+                  const imageUrl = item.imageUrl;
+                  return (
+                    <View
+                      key={i}
+                      style={[styles.messages, { alignItems: "flex-end" }]}
+                    >
+                      {!isVisible ? (
+                        <Ionicons
+                          name="image"
+                          size={24}
+                          color="black"
+                          onPress={handleImageVisibility}
+                        />
+                      ) : (
+                        <Modal visible={isVisible}>
+                          <Image
+                            source={{ uri: imageUrl }}
+                            style={{ width: "100%", height: "100%" }}
+                          />
+                          <Ionicons
+                            name="close"
+                            size={24}
+                            color="black"
+                            onPress={handleImageVisibility}
+                            style={{
+                              position: "absolute",
+                              top: 60,
+                              right: 20,
+                            }}
+                          />
+                        </Modal>
+                      )}
+                    </View>
+                  );
+                }
+                if (item.imageUrl && item.opened === true) {
+                  if (item.sentByUser === currentUserUsername.data().username) {
+                    return (
+                      <View key={i} style={{ alignItems: "flex-end", marginRight: 10, }}>
+                        <Image
+                          source={{ uri: item.imageUrl }}
+                          style={{ width: 200, height: 200 }}
+                          onLoad={() => console.log("loaded")}
+                        />
+                      </View>
+                    );
+                  } else {
+                    return (
+                      <View key={i} style={{ alignItems: "flex-start" }}>
+                        <Image
+                          source={{ uri: item.imageUrl }}
+                          style={{ width: 200, height: 200 }}
+                          onLoad={() => console.log("loaded")}
+                        />
+                      </View>
+                    );
+                  }
+                }
+                return;
+              })
+          );
           setLoading(false);
-          setMessages(userMessages);
+        setNewMessageIncoming(false);
         } else {
           setUser(null);
         }
+        
       } catch (error) {
         console.log(error);
       }
     });
-    return unsubscribe;
-  }, []);
+    return () => unsubscribe();
+  }, [isVisible, newMessageIncoming]);
+
+
+ 
+
+  const handleImageVisibility = () => {
+    setisVisible(!isVisible);
+  };
 
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -118,7 +173,6 @@ export default function UserChatScreen({ route }) {
     const friendRef = doc(database, "users", friend.id);
     const now = new Date().getTime();
     const readabletime = new Date(now).toLocaleString();
-
     //id is the id of the conversation partner
     await updateDoc(userRef, {
       messages: arrayUnion({
@@ -140,54 +194,55 @@ export default function UserChatScreen({ route }) {
         timestamp: now,
       }),
     });
-
     setNewMessage("");
     //refresh page to show new message
     const userDoc = await getDoc(userRef);
-    setMessages(userDoc.data().messages);
+    setMessages(await userDoc.data().messages);
+    setNewMessageIncoming(true);
   };
 
-  const { height } = useWindowDimensions();
-  const navigationFooterHeight = 100;
-  const messageContainerMaxHeight = height - navigationFooterHeight;
-
-  const messageContainerPaddingBottom = navigationFooterHeight - 20;
-
   return (
-    <ScrollView
-      automaticallyAdjustKeyboardInsets={true}
-      keyboardDismissMode="interactive"
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.container}>
-        
-        <View
-          style={[
-            styles.messageContainer,
-            {
-              maxHeight: messageContainerMaxHeight,
-              paddingBottom: messageContainerPaddingBottom,
-            },
-          ]}
+    <View style={{ 
+      flex: 1, 
+      bottom: 100,
+      backgroundColor: "#fff",
+      }}>
+      <ScrollView
+        ref={scrollViewRef}
+        onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: false })}
+        contentContainerStyle={
+          {
+            flexGrow: 1,
+            justifyContent: 'flex-end',
+          }
+        }
+        automaticallyAdjustKeyboardInsets={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        {chatContent}
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={newMessage}
+          onChangeText={(text) => setNewMessage(text)}
+          placeholder="Type a message"
+          style={styles.input}
+        />
+        <TouchableOpacity onPress={handleSendMessage}
+        style={{
+          height: 50,
+          width: 50,
+          borderRadius: 10,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+
         >
-          {loading ? <Text>Loading...</Text> : chatContent}
-          
-          
-          
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={newMessage}
-              onChangeText={(text) => setNewMessage(text)}
-              placeholder="Type a message"
-              style={styles.input}
-            />
-            <TouchableOpacity onPress={handleSendMessage}>
-              <Text>Send</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          <Text>Send</Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+            </ScrollView>
+
+    </View>
   );
 }
 
@@ -197,23 +252,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "Avenir",
+    position: "absolute",
+    bottom: 200,
+    paddingVertical: 20,
   },
   messageContainer: {
-    width: "100%",
+    flex: 100,
+    width: "100%", 
     backgroundColor: "white",
-    alignItems: "flex-end",
+    alignItems: "center",
     justifyContent: "flex-end",
+
   },
   messages: {
-    alignContent: "flex-end",
-    borderTopWidth: 0.5,
-    borderTopColor: "lightgrey",
-    width: "100%",
-    padding: 20,
+    paddingTop: 20,
+    paddingBottom: 60,
+    
   },
   inputContainer: {
-    position: "absolute",
-    bottom: 0,
     width: "100%",
     marginBottom: 20,
     flexDirection: "row",
@@ -227,4 +283,6 @@ const styles = StyleSheet.create({
     padding: 10,
     width: "80%",
   },
+
 });
+

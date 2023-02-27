@@ -77,6 +77,7 @@ export default function UsersScreen() {
     });
     setFriendList(prevFriends => [...prevFriends, { id, username }]);
     setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== id));
+    
   };
 
 

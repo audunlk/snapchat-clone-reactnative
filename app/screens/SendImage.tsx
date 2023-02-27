@@ -68,6 +68,7 @@ export default function SendImage({ route }) {
           imageUrl: imageUrl,
           timestamp: unixTimeStap,
           senderId: user.uid,
+          opened: false,
         }),
       });
       //upload to user's own images aswell
@@ -80,6 +81,7 @@ export default function SendImage({ route }) {
           imageUrl: imageUrl,
           timestamp: unixTimeStap,
           senderId: user.uid,
+          opened: false,
         }),
       });
             //NOT WORKING REMOVE CODE IF NOT WORKING
